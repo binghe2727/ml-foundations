@@ -5,6 +5,10 @@ package linearLogi;
 //keep the logic and the functino reuses.
 
 //we can use the static parameter to set the whole structure.
+
+
+//attention pleas for updating the weight,there is minus not plus!!formula familiar!!
+//gradient sensitive!!! miniux
 import java.io.*;
 import java.util.*;
 import java.math.*;
@@ -13,6 +17,7 @@ public class linLog {
 	private static final double RATE=0.001;
 	private static final int SIZE=1000;//for data size
 	private static final int LOOP=2000;//loop times in logistic regression
+	private int sgd;
 	private class in{
 		double[] x=new double[DIM];
 		int y=0;
@@ -23,6 +28,7 @@ public class linLog {
 	private double[] weight;
 	//read data from the file
 	linLog(String pathName, String testPath)throws FileNotFoundException{
+		sgd=0;
 		inData=new ArrayList<in>();
 		testData=new ArrayList<in>();
 		weight=new double[DIM];
@@ -49,7 +55,7 @@ public class linLog {
 	
 	//sigmoid function
 	public double sigmoid(double x){
-		return 1/(1+Math.exp(-x));
+		return (double) 1.0/(1.0+Math.exp(-x));
 	}
 	//inner product
 	public double innerPro(double[] w, double[] x){
@@ -82,7 +88,20 @@ public class linLog {
 			for(in data:inData){
 				sum=arrayPlus(numArray(data.x,(-1)*data.y*sigmoid((-1)*data.y*innerPro(weight,data.x))),sum);
 			}
-			weight=arrayPlus(weight,numArray(sum,(double) RATE/SIZE));
+			weight=arrayPlus(weight,numArray(sum,(double) -RATE/inData.size()));
+		}
+	}
+	//sgd updating
+	public void lr1(){
+		for(int j=0;j<LOOP;j++){
+			double[] sum=new double[DIM];
+			in data=inData.get(sgd);
+			sum=arrayPlus(numArray(data.x,(-1)*data.y*sigmoid((-1)*data.y*innerPro(weight,data.x))),sum);
+			sgd++;
+			if(sgd>=inData.size()){
+				sgd=0;
+			}
+			weight=arrayPlus(weight,numArray(sum,(double) -RATE));
 		}
 	}
 	//tast// 
@@ -96,13 +115,13 @@ public class linLog {
 		return (double) err/testData.size();
 	}
 	public int sign(double x){
-		return x>=0?+1:-1;
+		return x>0?+1:-1;
 	}
 	public static void main(String[] args)throws FileNotFoundException{
 		String dataPath="./src/trainingData.txt";
 		String testPath="./src/testData.txt";
 		linLog a=new linLog(dataPath,testPath);
-		a.lr();
+		a.lr1();
 		System.out.println(a.test());	
 	}
 }
